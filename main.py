@@ -2,6 +2,7 @@ import os
 from parser import parse_args
 from dotenv import load_dotenv
 from openai import OpenAI
+from output import display_output, display_verbose_output
 
 # Load and read the .env file
 load_dotenv()
@@ -22,20 +23,25 @@ def main():
 
 
     args = parse_args()
+
+    messages = [
+        {
+            "role": "user",
+            "content": args.user_prompt
+        },
+    ]
+
     response = client.chat.completions.create(
         model = "openrouter/free",
-        messages = [
-            {
-                "role": "user",
-                "content": args.user_prompt
-            }
-        ]
+        messages = messages
     )
     if response.usage == None:
         raise RuntimeError("Failed API request")
-    print(f"Prompt tokens: {response.usage.prompt_tokens}")
-    print(f"Response tokens: {response.usage.completion_tokens}")
-    print(f"Response:\n {response.choices[0].message.content}")
+
+    if args.verbose:
+        display_verbose_output(args.user_prompt, response)
+
+    display_output(response)
 
 if __name__ == "__main__":
     main()
